@@ -1,0 +1,211 @@
+1️⃣ How Python Actually Works (Internals – Simplified but Accurate)
+Key idea (VERY important):
+
+Everything in Python is an object
+Variables do not store values — they store references (pointers) to objects in memory.
+
+a = 10
+b = a
+
+
+Memory view:
+
+a ─┐
+   ├──> 10 (int object)
+b ─┘
+
+
+a and b point to the same object
+
+Integers are immutable, so this is safe
+
+id() → Memory Identity
+a = 10
+b = 10
+
+print(id(a) == id(b))  # True (due to interning)
+
+
+⚠️ Python interns small integers (-5 to 256) for performance.
+
+2️⃣ Mutability vs Immutability (Core Concept)
+Immutable Objects (❌ cannot change in-place)
+
+int
+
+float
+
+bool
+
+str
+
+tuple
+
+frozenset
+
+x = 10
+x = x + 1   # creates NEW object
+
+Mutable Objects (✅ can change in-place)
+
+list
+
+dict
+
+set
+
+bytearray
+
+custom objects
+
+lst = [1, 2, 3]
+lst.append(4)   # same object modified
+
+3️⃣ The Most Common Interview Trap 🚨
+Example 1: Lists
+a = [1, 2, 3]
+b = a
+
+b.append(4)
+print(a)  # [1, 2, 3, 4]
+
+
+Why?
+
+a and b point to the same list
+
+Correct Way (Copy)
+a = [1, 2, 3]
+b = a.copy()
+
+b.append(4)
+print(a)  # [1, 2, 3]
+
+4️⃣ Shallow Copy vs Deep Copy (VERY IMPORTANT)
+Shallow Copy
+import copy
+
+a = [[1, 2], [3, 4]]
+b = copy.copy(a)
+
+b[0].append(99)
+print(a)  # [[1, 2, 99], [3, 4]]
+
+
+Why?
+
+Outer list copied
+
+Inner lists still shared
+
+Deep Copy
+b = copy.deepcopy(a)
+
+b[0].append(99)
+print(a)  # unchanged
+
+Visual Understanding
+Shallow Copy:
+a ──> [ L1, L2 ]
+b ──> [ L1, L2 ]   (same inner objects)
+
+Deep Copy:
+a ──> [ L1, L2 ]
+b ──> [ L1', L2' ]
+
+5️⃣ Mutability in Function Arguments (CRITICAL)
+Mutable Argument Example
+def add_item(lst):
+    lst.append(100)
+
+nums = [1, 2, 3]
+add_item(nums)
+
+print(nums)  # [1, 2, 3, 100]
+
+
+✔️ The function modifies the original list.
+
+Immutable Argument Example
+def add_one(x):
+    x += 1
+
+a = 10
+add_one(a)
+
+print(a)  # 10
+
+
+❌ No change — integers are immutable.
+
+6️⃣ The Famous Python Bug ⚠️ (DEFAULT MUTABLE ARGUMENT)
+def add_item(item, lst=[]):
+    lst.append(item)
+    return lst
+
+print(add_item(1))
+print(add_item(2))
+
+
+Output:
+
+[1]
+[1, 2]  # 😱 unexpected
+
+Why?
+
+Default arguments are evaluated once, not per call.
+
+Correct Pattern (ALWAYS USE THIS)
+def add_item(item, lst=None):
+    if lst is None:
+        lst = []
+    lst.append(item)
+    return lst
+
+
+✔️ Interview-safe code
+
+7️⃣ Strings vs Lists (Why strings behave “weird”)
+s = "hello"
+s += "!"
+print(s)
+
+
+➡️ New string created
+
+lst = ["h", "e"]
+lst += ["l"]
+
+
+➡️ Same list modified
+
+8️⃣ Tuples: Immutable… but Not Always Safe 👀
+t = ([1, 2], [3, 4])
+t[0].append(99)
+
+print(t)  # ([1, 2, 99], [3, 4])
+
+
+Tuple is immutable
+
+Contents may be mutable
+
+⚠️ This is a common interview question
+
+9️⃣ How Python Decides: Modify or Create New Object
+
+Rule of thumb:
+
+Operation	Mutable	Immutable
++=	modifies	creates new
+.append()	modifies	❌
+reassignment	new object	new object
+🔟 Must-Know Summary (MEMORIZE THIS)
+
+✅ Variables = references
+✅ Mutability controls in-place modification
+✅ Lists/dicts are dangerous when shared
+✅ Shallow vs deep copy matters
+✅ Never use mutable default arguments
+✅ Functions receive object references

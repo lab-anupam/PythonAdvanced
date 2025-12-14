@@ -1,0 +1,74 @@
+🧠 ONE-PAGE CHEAT SHEET
+Python Internals & Mutability (Interview Ready)
+🔑 Core Rule
+
+Variables don’t store values — they store references
+
+🧊 Immutable Types
+
+int, float, bool
+
+str, tuple
+
+frozenset
+
+x = 10
+x += 1  # new object
+
+🔥 Mutable Types
+
+list
+
+dict
+
+set
+
+bytearray
+
+lst.append(1)  # same object
+
+🧠 Reference Trap
+a = [1, 2]
+b = a
+b.append(3)
+# a == b
+
+📋 Copy Rules
+Copy Type	What is copied	Risk
+=	Reference	❌ High
+.copy()	Outer object	⚠️ Medium
+deepcopy()	All objects	✅ Safe
+⚠️ Shallow Copy Bug
+a = [[1], [2]]
+b = a.copy()
+b[0].append(99)
+
+✅ Deep Copy Fix
+copy.deepcopy(a)
+
+🚨 NEVER DO THIS
+def f(x, y=[]):  # ❌
+    ...
+
+✅ ALWAYS DO THIS
+def f(x, y=None):
+    if y is None:
+        y = []
+
+🧩 Tuple Gotcha
+t = ([1, 2],)
+t[0].append(3)  # allowed
+
+➕ Operator Rule
+Operator	Mutable	Immutable
++=	modifies	new object
++	new object	new object
+🎯 Interview One-Liner
+
+“Python uses pass-by-object-reference.
+Mutability determines whether changes affect the caller.”
+
+✅ You’re DONE for Day 1
+
+Next up (Day 2):
+NumPy internals + vectorization (why loops are slow)
