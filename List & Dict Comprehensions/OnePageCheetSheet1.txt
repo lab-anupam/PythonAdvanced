@@ -1,0 +1,71 @@
+🧾 ONE-PAGE CHEAT SHEET — Python Comprehensions
+
+👉 Interview-friendly
+👉 Pin this near your desk
+
+🔹 List Comprehension
+[expression for item in iterable]
+[expression for item in iterable if condition]
+[expr_if_true if condition else expr_if_false for item in iterable]
+
+Examples
+[x * 2 for x in nums]
+[x for x in nums if x > 0]
+["even" if x % 2 == 0 else "odd" for x in nums]
+
+🔹 Dict Comprehension
+{key: value for item in iterable}
+{key: value for k, v in dict.items() if condition}
+
+Examples
+{x: x**2 for x in range(5)}
+{k.lower(): v for k, v in data.items()}
+
+🔹 Set Comprehension
+{expression for item in iterable}
+
+{n for n in nums if n % 2 == 0}
+
+🔹 Generator Comprehension
+(expression for item in iterable)
+
+(x * 2 for x in huge_dataset)
+
+
+✔ Lazy
+✔ Memory efficient
+
+🔥 Tricky Rules (Interview Gold)
+
+✅ if–else comes before for
+❌ else cannot appear after filter
+
+# Correct
+[x if x > 0 else 0 for x in nums]
+
+⚠️ Late Binding Trap
+# Problem
+[lambda: i for i in range(3)]  # → [2,2,2]
+
+# Fix
+[lambda i=i: i for i in range(3)]
+
+⚠️ Dict Key Overwrite
+{x: len(x) for x in ["a", "bb", "cc"]}
+# Duplicate keys overwrite silently
+
+🚫 When NOT to Use Comprehensions
+
+❌ Side effects
+❌ Complex branching
+❌ Poor readability
+
+Rule: If you need to explain it → use a loop
+
+🧠 Performance Rule
+
+✅ Comprehension > map() / filter()
+
+✅ Generator for large data
+
+❌ Don’t optimize prematurely
