@@ -1,0 +1,433 @@
+📌 Topic: Composition vs Inheritance
+
+Goal for today (2.5 hrs):
+
+Understand when to use inheritance
+
+Understand why composition is often preferred
+
+Design an ML-style pipeline using composition
+
+Produce pipeline skeleton code (your planned output)
+
+1️⃣ First, the REAL Question Interviewers Ask
+
+They are not asking:
+
+“What is inheritance?”
+
+They are asking:
+
+“How do you design systems that don’t break when requirements change?”
+
+That’s why composition vs inheritance matters.
+
+2️⃣ Inheritance (IS-A relationship)
+🔹 Concept
+
+Inheritance means:
+
+One class IS A type of another class
+
+class Animal:
+    def speak(self):
+        pass
+
+class Dog(Animal):
+    def speak(self):
+        return "Bark"
+
+
+✔ Dog is an Animal
+
+🔹 Advantages
+
+Code reuse
+
+Polymorphism
+
+Clear hierarchy (when it truly exists)
+
+🔹 Problems with Inheritance ⚠️
+class Bird:
+    def fly(self):
+        return "Flying"
+
+class Ostrich(Bird):
+    pass
+
+
+❌ Ostrich cannot fly, but inheritance forces it.
+
+📌 This is called fragile base class problem.
+
+3️⃣ Composition (HAS-A relationship) ⭐⭐⭐
+🔹 Concept
+
+Composition means:
+
+A class HAS A component
+
+Instead of inheriting behavior, you inject it.
+
+Example
+class Engine:
+    def start(self):
+        return "Engine started"
+
+class Car:
+    def __init__(self, engine):
+        self.engine = engine
+
+    def drive(self):
+        return self.engine.start()
+
+
+✔ Car has an Engine
+✔ Engine can be swapped later
+
+4️⃣ Side-by-Side Comparison (INTERVIEW GOLD)
+Aspect	Inheritance	Composition
+Relationship	IS-A	HAS-A
+Flexibility	❌ Low	✅ High
+Coupling	Tight	Loose
+Easy to change	❌ Risky	✅ Safe
+Preferred in real systems	❌ Rare	✅ Very common
+
+🧠 Rule of Thumb
+
+Favor composition over inheritance
+
+(You can literally say this in interviews.)
+
+5️⃣ Why ML / Data Pipelines Use Composition
+
+Think about a pipeline:
+
+Read data
+
+Clean data
+
+Transform data
+
+Validate data
+
+Export data
+
+❌ Inheritance makes this rigid
+✅ Composition makes this modular
+
+6️⃣ ❌ Bad Design (Inheritance-based Pipeline)
+class Pipeline:
+    def process(self, data):
+        pass
+
+class CleanPipeline(Pipeline):
+    def process(self, data):
+        return [x for x in data if x is not None]
+
+class NormalizePipeline(CleanPipeline):
+    def process(self, data):
+        data = super().process(data)
+        return [x / max(data) for x in data]
+
+
+⚠️ Problems:
+
+Hard-coded order
+
+Hard to reuse steps
+
+Inflexible
+
+7️⃣ ✅ Correct Design (Composition-based Pipeline)
+🔹 Step Components
+class Cleaner:
+    def run(self, data):
+        return [x for x in data if x is not None]
+
+
+class Normalizer:
+    def run(self, data):
+        max_val = max(data)
+        return [x / max_val for x in data]
+
+🔹 Pipeline Using Composition
+class Pipeline:
+    def __init__(self, steps):
+        self.steps = steps
+
+    def run(self, data):
+        for step in self.steps:
+            data = step.run(data)
+        return data
+
+🔹 Usage
+pipeline = Pipeline([
+    Cleaner(),
+    Normalizer()
+])
+
+result = pipeline.run([10, None, 20, 30])
+print(result)
+
+
+✅ Modular
+✅ Extensible
+✅ Interview-ready
+
+8️⃣ Extend Pipeline Easily (Why Composition Wins)
+class Scaler:
+    def run(self, data):
+        return [x * 100 for x in data]
+
+
+Just plug it in:
+
+pipeline = Pipeline([
+    Cleaner(),
+    Normalizer(),
+    Scaler()
+])
+
+
+🚀 No existing code changes required.
+
+9️⃣ Key Design Principle (Say This Confidently)
+
+Inheritance models identity
+Composition models behavior
+
+
+🧠 WHY we are doing this (context)
+
+This single exercise covers multiple interview signals:
+
+Design thinking (composition)
+
+Clean OOP
+
+Extensibility
+
+Debugging & reasoning
+
+Real-world relevance (ML / data pipelines)
+
+If you master this one topic, you’ll outperform many candidates.
+
+1️⃣ Why COMPOSITION is better (in simple words)
+
+Use this explanation as-is in interviews:
+
+Composition is better because it keeps classes loosely coupled.
+Each component does one job and can be added, removed, or replaced without modifying existing code.
+This makes systems easier to extend, test, and maintain as requirements change.
+
+One-liner (gold)
+
+Inheritance models identity, composition models behavior.
+
+2️⃣ pipeline_composition_example.py ✅
+
+👉 Copy–paste and save exactly with this name
+
+"""
+pipeline_composition_example.py
+--------------------------------
+Topic: Composition over Inheritance
+Use case: ML / Data Processing Pipeline
+"""
+
+# ============================================================
+# PIPELINE STEPS
+# ============================================================
+
+class Cleaner:
+    def run(self, data):
+        """Remove None and invalid values"""
+        return [x for x in data if isinstance(x, (int, float))]
+
+
+class Validator:
+    def run(self, data):
+        """Ensure data is not empty"""
+        if not data:
+            raise ValueError("Data validation failed: empty dataset")
+        return data
+
+
+class Normalizer:
+    def run(self, data):
+        """Normalize values between 0 and 1"""
+        max_val = max(data)
+        return [x / max_val for x in data]
+
+
+class Logger:
+    def run(self, data):
+        """Log data length (side-effect allowed here)"""
+        print(f"[LOG] Records count: {len(data)}")
+        return data
+
+
+# ============================================================
+# PIPELINE (COMPOSITION)
+# ============================================================
+
+class Pipeline:
+    def __init__(self, steps):
+        self.steps = steps
+
+    def run(self, data):
+        for step in self.steps:
+            data = step.run(data)
+        return data
+
+
+# ============================================================
+# USAGE
+# ============================================================
+
+if __name__ == "__main__":
+    raw_data = [10, None, 20, "x", 30]
+
+    pipeline = Pipeline([
+        Cleaner(),
+        Validator(),
+        Logger(),
+        Normalizer()
+    ])
+
+    result = pipeline.run(raw_data)
+    print("Final Output:", result)
+
+3️⃣ Practice Tasks — DONE STEP BY STEP
+✅ Add 2 more steps
+
+✔ Validator
+✔ Logger
+
+Already implemented above.
+
+✅ Change pipeline order (NO code changes)
+pipeline = Pipeline([
+    Cleaner(),
+    Logger(),
+    Validator(),
+    Normalizer()
+])
+
+
+✔ Works
+✔ No pipeline modification
+✔ Composition advantage proven
+
+✅ Swap steps without touching pipeline class
+
+Remove normalization:
+
+pipeline = Pipeline([
+    Cleaner(),
+    Validator(),
+    Logger()
+])
+
+
+✔ Still works
+✔ Zero refactor
+✔ Interview gold
+
+4️⃣ Predict Output — Composition vs Inheritance (INTERVIEW TRAPS)
+🔥 Question 1: Step Order
+pipeline = Pipeline([
+    Logger(),
+    Cleaner()
+])
+
+pipeline.run([1, None, 2])
+
+✅ Output
+[LOG] Records count: 3
+
+
+🧠 Logger runs before cleaning
+
+🔥 Question 2: Validator Failure
+pipeline = Pipeline([
+    Cleaner(),
+    Validator()
+])
+
+pipeline.run([None, None])
+
+✅ Output
+ValueError: Data validation failed: empty dataset
+
+
+🧠 Validator correctly blocks pipeline
+
+🔥 Question 3: Why inheritance fails here
+class CleanPipeline:
+    def run(self, data):
+        return [x for x in data if x]
+
+class NormalizePipeline(CleanPipeline):
+    def run(self, data):
+        data = super().run(data)
+        return [x / max(data) for x in data]
+
+
+❓ What if we want logging between clean & normalize?
+
+❌ You must rewrite classes
+❌ Tight coupling
+❌ Bad design
+
+🔥 Question 4: Component Reuse
+logger = Logger()
+
+pipeline1 = Pipeline([Cleaner(), logger])
+pipeline2 = Pipeline([Validator(), logger])
+
+
+✅ Logger reused
+❌ Impossible with inheritance
+
+5️⃣ Mini Interview Project (FINAL FORM)
+🎯 Project Name
+
+Config-Driven Data Processing Pipeline
+
+🧩 Problem Statement (Say this)
+
+Design a flexible data pipeline where processing steps can be added, removed, or reordered without modifying the core pipeline logic.
+
+🏗️ Design Choices
+Aspect	Choice
+Design Pattern	Composition
+Pipeline Control	Step injection
+Extensibility	High
+Testing	Each step independently testable
+🧠 Why Interviewers Like This
+
+✔ Shows SOLID principles
+✔ Shows real-world thinking
+✔ Matches ML / ETL systems
+✔ Easy to explain & extend
+
+⭐ How to Extend (Bonus)
+
+Add config-driven steps:
+
+STEP_REGISTRY = {
+    "clean": Cleaner,
+    "validate": Validator,
+    "log": Logger,
+    "normalize": Normalizer
+}
+
+steps = ["clean", "validate", "normalize"]
+pipeline = Pipeline([STEP_REGISTRY[s]() for s in steps])
+
+
+💥 This is senior-level thinking.
