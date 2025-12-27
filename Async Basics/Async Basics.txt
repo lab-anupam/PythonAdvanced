@@ -1,0 +1,186 @@
+1️⃣ First: WHY async exists (very important)
+❌ Normal (blocking) code problem
+import time
+
+def task():
+    time.sleep(2)
+    print("Task done")
+
+task()
+task()
+
+⏱️ What happens?
+
+First task waits 2 sec
+
+Second task waits another 2 sec
+➡️ Total time ≈ 4 seconds
+
+💡 CPU is idle while waiting
+
+2️⃣ What async REALLY means (plain English)
+
+Async allows Python to do other work while waiting for slow operations
+(like network calls, DB queries, APIs)
+
+📌 Async is not for CPU-heavy work
+📌 Async is for I/O waiting
+
+3️⃣ Your first async function (VERY SMALL)
+async def hello():
+    print("Hello async")
+
+
+🚨 Important:
+
+Calling hello() does NOT run it
+
+It returns a coroutine object
+
+print(hello())
+
+
+Output:
+
+<coroutine object hello at 0x...>
+
+4️⃣ How do we RUN async code? (asyncio)
+import asyncio
+
+async def hello():
+    print("Hello async")
+
+asyncio.run(hello())
+
+✅ Output
+Hello async
+
+5️⃣ await keyword (THIS IS THE CORE)
+
+await means:
+
+“Pause here and let other tasks run”
+
+Example without async (blocking)
+import time
+
+def work():
+    time.sleep(2)
+    print("Done")
+
+Async version (non-blocking)
+import asyncio
+
+async def work():
+    await asyncio.sleep(2)
+    print("Done")
+
+
+🚨 await can be used ONLY inside async def
+
+6️⃣ Async execution flow (small example)
+import asyncio
+
+async def task1():
+    print("Task1 start")
+    await asyncio.sleep(2)
+    print("Task1 end")
+
+async def task2():
+    print("Task2 start")
+    await asyncio.sleep(2)
+    print("Task2 end")
+
+async def main():
+    await task1()
+    await task2()
+
+asyncio.run(main())
+
+⏱️ Output (sequential)
+Task1 start
+Task1 end
+Task2 start
+Task2 end
+
+
+⏱️ Time ≈ 4 seconds
+
+7️⃣ Running tasks CONCURRENTLY (this is async power)
+async def main():
+    await asyncio.gather(task1(), task2())
+
+✅ Output (order may vary)
+Task1 start
+Task2 start
+Task1 end
+Task2 end
+
+
+⏱️ Time ≈ 2 seconds
+
+🎯 This is the async advantage
+
+8️⃣ Very important rule (MEMORIZE)
+
+time.sleep() ❌ blocks event loop
+asyncio.sleep() ✅ allows concurrency
+
+9️⃣ Async FastAPI-style function (real-world)
+async def get_user(user_id):
+    await asyncio.sleep(1)  # pretend DB call
+    return {"id": user_id, "name": "Anupam"}
+
+
+💡 This is exactly how:
+
+FastAPI
+
+Async APIs
+
+Async microservices work
+
+🔟 Common beginner mistakes ❌
+
+❌ Using time.sleep() inside async
+❌ Forgetting await
+❌ Calling async function without event loop
+❌ Thinking async = multithreading (it’s not)
+
+1️⃣1️⃣ Async mental model (IMPORTANT)
+Task starts
+   ↓
+await (pause)
+   ↓
+event loop runs other tasks
+   ↓
+task resumes
+
+1️⃣2️⃣ Async demo code (Expected Output)
+👉 Save as: python_async_basics_demo.py
+import asyncio
+import time
+
+async def fetch_data(name, delay):
+    print(f"{name} started")
+    await asyncio.sleep(delay)
+    print(f"{name} finished")
+
+async def main():
+    start = time.time()
+
+    await asyncio.gather(
+        fetch_data("Task A", 2),
+        fetch_data("Task B", 2)
+    )
+
+    print(f"Total time: {time.time() - start:.2f}s")
+
+asyncio.run(main())
+
+✅ Output
+Task A started
+Task B started
+Task A finished
+Task B finished
+Total time: 2.00s
