@@ -1,0 +1,454 @@
+OOP Fundamentals (Python Advanced)
+0️⃣ Why OOP Matters (Interview + Real Work)
+
+OOP helps you:
+
+Model real-world entities
+
+Write maintainable & reusable code
+
+Scale data pipelines, services, and applications
+
+📌 In data engineering / backend / AI infra, OOP is used for:
+
+Data processors
+
+API clients
+
+Pipeline components
+
+Config-driven systems
+
+1️⃣ Core OOP Concepts (Must Know)
+Concept	Meaning
+Class	Blueprint
+Object	Instance of class
+__init__	Constructor
+self	Current object
+Attributes	Data
+Methods	Behavior
+2️⃣ Basic Class Structure
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def greet(self):
+        return f"Hello, my name is {self.name}"
+
+Usage
+p = Person("Anupam", 30)
+print(p.greet())
+
+
+📌 self is not a keyword, it’s a convention.
+
+3️⃣ Instance vs Class Variables (Very Important ⚠️)
+class Employee:
+    company = "Cinctive"      # class variable
+
+    def __init__(self, name):
+        self.name = name      # instance variable
+
+Behavior
+e1 = Employee("A")
+e2 = Employee("B")
+
+print(e1.company)   # Cinctive
+Employee.company = "NewCo"
+print(e2.company)   # NewCo
+
+
+📌 Interview favorite question
+
+4️⃣ Methods Types
+🔹 Instance Method
+def display(self):
+    pass
+
+🔹 Class Method
+@classmethod
+def from_string(cls, data):
+    return cls(data)
+
+🔹 Static Method
+@staticmethod
+def is_valid(x):
+    return x > 0
+
+5️⃣ __init__ Deep Dive
+class FileProcessor:
+    def __init__(self, filename, delimiter=","):
+        self.filename = filename
+        self.delimiter = delimiter
+
+
+📌 __init__:
+
+Initializes object state
+
+Runs automatically
+
+Returns None
+
+6️⃣ Build: Simple Data Processor Class ✅
+
+This matches your task exactly.
+
+🎯 Goal
+
+Load data
+
+Clean data
+
+Provide summary
+
+✅ OOP Practice Code
+class DataProcessor:
+    def __init__(self, data):
+        """
+        data: list of numbers
+        """
+        self.data = data
+
+    def remove_none(self):
+        self.data = [x for x in self.data if x is not None]
+
+    def normalize(self):
+        max_val = max(self.data)
+        self.data = [x / max_val for x in self.data]
+
+    def summary(self):
+        return {
+            "count": len(self.data),
+            "min": min(self.data),
+            "max": max(self.data),
+            "avg": sum(self.data) / len(self.data)
+        }
+
+Usage
+dp = DataProcessor([10, 20, None, 30])
+dp.remove_none()
+dp.normalize()
+print(dp.summary())
+
+
+📌 This is real-world clean design
+
+7️⃣ Encapsulation (Private Variables)
+class Account:
+    def __init__(self, balance):
+        self._balance = balance     # protected
+
+class SecureAccount:
+    def __init__(self, balance):
+        self.__balance = balance    # private
+
+
+📌 Python uses name mangling, not true privacy.
+
+8️⃣ __str__ vs __repr__ (Interview Favorite)
+class User:
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return f"User({self.name})"
+
+    def __repr__(self):
+        return f"User(name={self.name})"
+
+9️⃣ Common OOP Mistakes ❌
+
+❌ Forgetting self
+❌ Using class variables incorrectly
+❌ Overloading __init__ logic
+❌ Doing too much in one class
+
+📌 Single Responsibility Principle applies even here.
+
+🔟 Mental Model (Very Important)
+
+Class = noun
+Method = verb
+Object = state + behavior
+
+1️⃣1️⃣ Interview-Level Questions (Quick)
+
+Q: Why use OOP instead of functions?
+A: To bundle state + behavior, reduce coupling, improve maintainability.
+
+Q: Can __init__ return value?
+A: ❌ No, must return None.
+
+Q: Difference between class & instance variable?
+A: Shared vs object-specific.
+
+1️⃣ Class Method vs Static Method (CLEARLY)
+❓ What is the real question interviewers ask?
+
+They are NOT asking for syntax.
+
+They are asking:
+
+“Does this method depend on the class itself, or is it just logically related?”
+
+🔹 Class Method (@classmethod)
+✅ Key idea
+
+Works with the class
+
+Receives the class as cls
+
+Can create or modify class-level state
+
+Often used as alternative constructors
+
+Syntax
+class MyClass:
+    @classmethod
+    def method(cls):
+        pass
+
+Example (Very Common Interview Case)
+class User:
+    role = "guest"
+
+    def __init__(self, name):
+        self.name = name
+
+    @classmethod
+    def admin(cls, name):
+        user = cls(name)
+        user.role = "admin"
+        return user
+
+Usage
+u1 = User("Anupam")
+u2 = User.admin("Root")
+
+print(u1.role)  # guest
+print(u2.role)  # admin
+
+💡 Why class method?
+
+Needs access to cls
+
+Creates objects in a controlled way
+
+Supports inheritance properly
+
+🔹 Static Method (@staticmethod)
+✅ Key idea
+
+Does NOT depend on class or object
+
+No self, no cls
+
+Just a utility function, kept inside class for organization
+
+Syntax
+class MyClass:
+    @staticmethod
+    def method():
+        pass
+
+Example
+class MathUtils:
+    @staticmethod
+    def is_even(n):
+        return n % 2 == 0
+
+Usage
+MathUtils.is_even(4)   # True
+
+💡 Why static method?
+
+Logically related to class
+
+No need for object or class state
+
+Keeps namespace clean
+
+🔥 Side-by-side (Interview Gold)
+Feature	Class Method	Static Method
+Decorator	@classmethod	@staticmethod
+First arg	cls	none
+Access class vars	✅ Yes	❌ No
+Access instance vars	❌ No	❌ No
+Used for	Alternative constructors	Utility/helper logic
+🧠 Interview Rule (MEMORIZE)
+
+If a method needs the class → classmethod
+If it needs nothing → staticmethod
+
+2️⃣ __str__ vs __repr__ (What is the REAL question?)
+❓ What interviewers are actually testing
+
+They want to know:
+
+Do you understand how objects are represented for humans vs developers?
+
+The Code You Asked About
+class User:
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return f"User({self.name})"
+
+    def __repr__(self):
+        return f"User(name={self.name})"
+
+🔹 __str__ → Human-friendly
+
+Used by print()
+
+Used for UI, logs, messages
+
+Should be readable
+
+u = User("Anupam")
+print(u)
+
+Output
+User(Anupam)
+
+🔹 __repr__ → Developer-friendly
+
+Used in:
+
+Interactive shell
+
+Debugging
+
+Logging
+
+Should be unambiguous
+
+Ideally can recreate the object
+
+u
+
+Output
+User(name=Anupam)
+
+🔥 Very Important Rule (Interview Favorite)
+
+If __str__ is missing → Python falls back to __repr__
+If __repr__ is missing → default object memory address
+
+Example Without __str__
+class A:
+    def __repr__(self):
+        return "A()"
+
+print(A())
+
+Output
+A()
+
+🧠 Interview One-liner (Use This)
+
+__str__ is for users, __repr__ is for developers
+
+
+🧠 Predict the Output — OOP Traps (Interview Level)
+
+Try predicting before reading answers.
+
+1️⃣ Class vs Instance Variable
+class A:
+    x = 10
+
+a1 = A()
+a2 = A()
+
+a1.x = 20
+print(a2.x)
+
+
+✅ Output
+
+10
+
+
+📌 a1.x creates an instance variable, doesn’t change class variable.
+
+2️⃣ __init__ Return Value
+class B:
+    def __init__(self):
+        return 5
+
+
+✅ Result
+
+TypeError
+
+
+📌 __init__ must return None
+
+3️⃣ __str__ vs __repr__
+class C:
+    def __repr__(self):
+        return "C()"
+
+c = C()
+print(c)
+
+
+✅ Output
+
+C()
+
+
+📌 __str__ missing → falls back to __repr__
+
+4️⃣ Class Method Behavior
+class D:
+    value = 10
+
+    @classmethod
+    def update(cls):
+        cls.value = 20
+
+D.update()
+print(D.value)
+
+
+✅ Output
+
+20
+
+
+📌 Class method modifies class state
+
+5️⃣ Static Method Trap
+class E:
+    @staticmethod
+    def show():
+        return x
+
+
+✅ Result
+
+NameError
+
+
+📌 Static methods don’t know class or instance
+
+6️⃣ Private Variable Name Mangling
+class F:
+    def __init__(self):
+        self.__x = 10
+
+f = F()
+print(f._F__x)
+
+
+✅ Output
+
+10
+
+
+📌 Python uses name mangling, not true privacy.
