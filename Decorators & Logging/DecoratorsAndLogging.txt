@@ -1,0 +1,602 @@
+🧠 STEP 0: The ONE idea you must understand
+
+👉 Functions are just variables
+
+That’s it.
+Everything else builds on this.
+
+STEP 1️⃣ Functions are VARIABLES
+def hello():
+    print("Hello")
+
+
+Now this:
+
+x = hello
+x()
+
+✅ Output
+Hello
+
+
+💡 Meaning:
+
+hello is a value
+
+x now points to the same function
+
+STEP 2️⃣ Functions can be PASSED to other functions
+def greet(func):
+    func()
+
+def say_hi():
+    print("Hi")
+
+greet(say_hi)
+
+✅ Output
+Hi
+
+
+💡 Meaning:
+
+say_hi is passed without ()
+
+greet calls it
+
+STEP 3️⃣ Functions can be RETURNED from functions
+def outer():
+    def inner():
+        print("Inside inner")
+    return inner
+
+f = outer()
+f()
+
+✅ Output
+Inside inner
+
+
+💡 Meaning:
+
+outer() returns a function
+
+That returned function is called later
+
+🚨 This is the core of decorators
+
+🧠 STEP 4: What is a decorator REALLY?
+
+A decorator is just:
+
+A function that
+takes a function
+returns a new function
+
+STEP 5️⃣ A decorator WITHOUT syntax sugar
+def my_decorator(func):
+    def wrapper():
+        print("Before function")
+        func()
+        print("After function")
+    return wrapper
+
+def hello():
+    print("Hello")
+
+
+Apply decorator manually:
+
+hello = my_decorator(hello)
+hello()
+
+✅ Output
+Before function
+Hello
+After function
+
+
+💡 Meaning:
+
+hello is replaced
+
+Extra behavior is wrapped around it
+
+STEP 6️⃣ The @ symbol is JUST shortcut syntax
+
+This:
+
+@my_decorator
+def hello():
+    print("Hello")
+
+
+is EXACTLY the same as:
+
+def hello():
+    print("Hello")
+
+hello = my_decorator(hello)
+
+
+📌 No magic. Just syntax sugar.
+
+🧠 STEP 7: Decorator with function arguments
+❌ Broken decorator
+def deco(func):
+    def wrapper():
+        func()
+    return wrapper
+
+
+This breaks if function has arguments.
+
+✅ Correct decorator
+def deco(func):
+    def wrapper(*args, **kwargs):
+        print("Calling function")
+        return func(*args, **kwargs)
+    return wrapper
+
+Example
+@deco
+def add(a, b):
+    return a + b
+
+print(add(2, 3))
+
+✅ Output
+Calling function
+5
+
+STEP 8️⃣ Why *args, **kwargs?
+
+Because you don’t know:
+
+how many arguments
+
+which keyword arguments
+
+It makes decorator generic.
+
+🧠 STEP 9: Logging decorator (REAL SIMPLE)
+def log(func):
+    def wrapper(*args, **kwargs):
+        print("Function started")
+        result = func(*args, **kwargs)
+        print("Function finished")
+        return result
+    return wrapper
+
+@log
+def greet(name):
+    print("Hello", name)
+
+greet("Anupam")
+
+✅ Output
+Function started
+Hello Anupam
+Function finished
+
+🧠 STEP 🔟 Timing decorator (SUPER BASIC)
+import time
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print("Time:", end - start)
+        return result
+    return wrapper
+
+@timer
+def slow():
+    time.sleep(1)
+
+slow()
+
+✅ Output
+Time: 1.00xxxx
+
+🧠 STEP 11: Why functools.wraps (don’t panic)
+
+Without it:
+
+print(slow.__name__)
+
+
+❌ Output:
+
+wrapper
+
+
+That’s bad.
+
+Fix:
+from functools import wraps
+
+def timer(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        ...
+    return wrapper
+
+
+Now:
+
+print(slow.__name__)
+
+
+✅ Output:
+
+slow
+
+🧠 STEP 12: Decorators in ONE SENTENCE
+
+Decorators add behavior to functions
+without modifying their code
+
+🧠 STEP 13: Mental Picture (IMPORTANT)
+you call greet()
+     ↓
+wrapper() runs
+     ↓
+real greet() runs
+     ↓
+wrapper() finishes
+
+
+1️⃣ What are *args and **kwargs?
+🔹 *args (Arguments)
+
+Collects positional arguments
+
+Stored as a tuple
+
+Example
+def demo(*args):
+    print(args)
+
+demo(1, 2, 3)
+
+✅ Output
+(1, 2, 3)
+
+
+💡 Meaning:
+All positional values go into args.
+
+🔹 **kwargs (Keyword Arguments)
+
+Collects named arguments
+
+Stored as a dictionary
+
+Example
+def demo(**kwargs):
+    print(kwargs)
+
+demo(a=1, b=2)
+
+✅ Output
+{'a': 1, 'b': 2}
+
+🔥 Together (*args, **kwargs)
+def demo(*args, **kwargs):
+    print(args)
+    print(kwargs)
+
+demo(1, 2, x=10, y=20)
+
+✅ Output
+(1, 2)
+{'x': 10, 'y': 20}
+
+🧠 WHY decorators need them
+
+Because decorators must work with ANY function, like:
+
+def f1(a): ...
+def f2(a, b): ...
+def f3(a, b, c=10): ...
+
+
+Decorator does not know function signature beforehand.
+
+2️⃣ “I did not call log – so why is it running?”
+
+This is the MOST IMPORTANT decorator concept.
+Let’s break it line by line.
+
+Your code (simplified)
+def log(func):
+    def wrapper(*args, **kwargs):
+        print("Function started")
+        result = func(*args, **kwargs)
+        print("Function finished")
+        return result
+    return wrapper
+
+@log
+def greet(name):
+    print("Hello", name)
+
+greet("Anupam")
+
+3️⃣ What @log REALLY does (NO MAGIC)
+
+This line:
+
+@log
+def greet(name):
+    print("Hello", name)
+
+
+Python rewrites it as:
+
+def greet(name):
+    print("Hello", name)
+
+greet = log(greet)
+
+
+🚨 THIS is the key line.
+
+Step-by-step execution
+STEP 1️⃣ Python defines greet
+def greet(name):
+    print("Hello", name)
+
+
+Nothing printed yet.
+
+STEP 2️⃣ Python applies decorator
+greet = log(greet)
+
+
+log(greet) is CALLED once
+
+It returns wrapper
+
+greet now points to wrapper
+
+So now:
+
+greet === wrapper
+
+STEP 3️⃣ You call greet("Anupam")
+
+But remember:
+
+greet → wrapper
+
+
+So Python runs:
+
+wrapper("Anupam")
+
+STEP 4️⃣ Wrapper executes
+print("Function started")
+result = func("Anupam")  # func is original greet
+print("Function finished")
+
+
+Which prints:
+
+Function started
+Hello Anupam
+Function finished
+
+
+🎯 That’s why log “runs” even though you didn’t call it manually.
+
+4️⃣ Visual Flow (THIS MAKES IT CLICK)
+You call greet("Anupam")
+        ↓
+wrapper("Anupam")   ← greet was replaced
+        ↓
+print("Function started")
+        ↓
+original greet("Anupam")
+        ↓
+print("Hello Anupam")
+        ↓
+print("Function finished")
+
+5️⃣ What is stored where?
+Name	What it contains
+func	original greet
+wrapper	new function
+greet	points to wrapper
+6️⃣ Why not call func() directly?
+
+Because:
+
+You want extra behavior
+
+You want reuse
+
+You want separation of concerns
+
+7️⃣ One-sentence summary (MEMORIZE THIS)
+
+@log replaces greet with wrapper, so calling greet() actually calls wrapper().
+
+8️⃣ VERY SMALL TEST (try this mentally)
+print(greet.__name__)
+
+
+❌ Output:
+
+wrapper
+
+
+Because greet is wrapper now.
+
+🧠 Short answer (in one line)
+
+@wraps copies metadata (name, docstring, etc.) from the original function to the wrapper.
+
+Without it, Python forgets who the original function was.
+
+1️⃣ Let’s see the PROBLEM first (no wraps)
+Code
+def log(func):
+    def wrapper(*args, **kwargs):
+        print("Start")
+        return func(*args, **kwargs)
+    return wrapper
+
+@log
+def greet(name):
+    """Say hello to a user"""
+    print("Hello", name)
+
+print(greet.__name__)
+print(greet.__doc__)
+
+❌ Output
+wrapper
+None
+
+
+🚨 What went wrong?
+
+greet lost its name
+
+greet lost its docstring
+
+Because:
+
+greet = wrapper
+
+2️⃣ Why this is BAD (real reasons)
+❌ 1. Debugging becomes confusing
+
+Logs show:
+
+Calling wrapper()
+
+
+instead of:
+
+Calling greet()
+
+❌ 2. Documentation tools break
+
+Tools like:
+
+help()
+
+Sphinx
+
+IDE tooltips
+
+All rely on:
+
+__name__
+__doc__
+
+❌ 3. Multiple decorators become impossible to trace
+
+Without wraps, all functions become:
+
+wrapper
+wrapper
+wrapper
+
+
+You lose the function chain.
+
+3️⃣ Now apply @wraps (SLOWLY)
+Correct code
+from functools import wraps
+
+def log(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        print("Start")
+        return func(*args, **kwargs)
+    return wrapper
+
+Run the SAME test
+@log
+def greet(name):
+    """Say hello to a user"""
+    print("Hello", name)
+
+print(greet.__name__)
+print(greet.__doc__)
+
+✅ Output
+greet
+Say hello to a user
+
+
+🎯 Metadata restored.
+
+4️⃣ What @wraps(func) ACTUALLY does
+
+Internally, it copies:
+
+__name__
+
+__doc__
+
+__module__
+
+__annotations__
+
+from func → wrapper
+
+So the wrapper pretends to be the original function.
+
+5️⃣ Why YOU personally should care
+
+You might think:
+
+“I’m just learning, why bother?”
+
+But:
+
+You already use logging
+
+You will use decorators in pipelines
+
+You will debug production code
+
+Without wraps, logs look like garbage.
+
+6️⃣ Think of it like this (analogy)
+
+func = original person
+
+wrapper = person wearing a mask
+
+@wraps = gives wrapper the original ID card
+
+So everyone still knows who it is.
+
+7️⃣ Interview-level explanation (use this)
+
+functools.wraps preserves the original function’s metadata when it’s wrapped by a decorator, which is critical for debugging, logging, documentation, and introspection.
+
+8️⃣ One-line rule (MEMORIZE)
+
+If you write a decorator, always use @wraps.
+
+No exceptions.
+
+9️⃣ Final tiny example (cement it)
+@log
+def add(a, b):
+    """Adds two numbers"""
+    return a + b
+
+help(add)
+
+
+❌ Without wraps → shows wrapper
+✅ With wraps → shows add
