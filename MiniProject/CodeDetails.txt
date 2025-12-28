@@ -1,0 +1,433 @@
+📁 Step 1 — decorators.py
+
+This file will contain reusable decorators used across the pipeline.
+
+🎯 Why this file exists (real-world reason)
+
+In production systems:
+
+Logging
+
+Timing
+
+Monitoring
+
+are cross-cutting concerns.
+They should not live inside business logic.
+
+✅ What we will implement here
+
+log_execution → logs start & end of a function
+
+timing → measures execution time
+
+Uses functools.wraps (important for debugging & introspection)
+
+🧠 Concepts used (mapping to syllabus)
+Topic	Where used
+Decorators	Core of this file
+*args, **kwargs	Generic wrapping
+wraps	Preserve function metadata
+Logging	Real production pattern
+
+🧪 Tiny Test (OPTIONAL, just to understand)
+
+You don’t need to keep this, but it helps conceptually:
+
+@log_execution
+@timing
+def test():
+    time.sleep(1)
+
+test()
+
+Output
+[LOG] Started: test
+[TIME] test: 1.00s
+[LOG] Finished: test
+
+
+👉 Shows decorator stacking order
+
+🧠 Interview Insight (say this confidently)
+
+We keep decorators in a separate module to centralize cross-cutting concerns like logging and timing, keeping business logic clean and reusable.
+
+
+.
+
+📁 Step 2 — ingestion.py
+🎯 Real-world purpose of this file
+
+In real systems, this layer:
+
+Calls external APIs
+
+Reads from databases
+
+Pulls data from services
+
+Does I/O-bound work
+
+➡️ This is exactly why async exists.
+
+🧠 Concepts Used (Syllabus Mapping)
+Topic	Where used
+Async / await	Async functions
+asyncio.gather	Concurrent ingestion
+Decorators	Logging + timing
+OOP-friendly design	Clean function responsibilities
+
+🔍 What is happening here (IMPORTANT)
+1️⃣ Async functions
+async def fetch_source_a():
+
+
+Does NOT block CPU
+
+Can pause while waiting (await)
+
+2️⃣ asyncio.gather
+await asyncio.gather(fetch_source_a(), fetch_source_b())
+
+
+Runs both API calls at the same time
+
+Total time ≈ max delay, not sum
+
+3️⃣ Decorators on async functions
+
+Yes — decorators work on async functions too
+because they wrap the coroutine function.
+
+4️⃣ List comprehension (clean + safe)
+[item for dataset in data_sets for item in dataset]
+
+
+No mutation
+
+Clean flattening
+
+Pythonic
+
+🧪 Quick Mental Test (no need to run)
+
+Order of prints:
+
+[LOG] Started: ingest_all_sources
+[LOG] Started: fetch_source_a
+[LOG] Started: fetch_source_b
+...
+[LOG] Finished: fetch_source_a
+[LOG] Finished: fetch_source_b
+[LOG] Finished: ingest_all_sources
+
+
+Time ≈ 1.5 seconds, not 2.5+
+
+🧠 Interview Insight (Say this)
+
+We use async ingestion with asyncio.gather to fetch multiple external sources concurrently, significantly reducing end-to-end latency for I/O-bound workloads.
+
+
+📁 Step 3 — processors.py
+🎯 Real-world purpose of this file
+
+In real systems, processors:
+
+Clean bad data
+
+Transform values
+
+Engineer features
+
+Prepare ML-ready / analytics-ready data
+
+Each processor:
+
+Does one job
+
+Is stateless or carefully stateful
+
+Can be plugged into a pipeline
+
+🧠 Concepts Used (Syllabus Mapping)
+Topic	Where used
+Mutability & Internals	Buggy cleaner vs safe cleaner
+List Comprehensions	Filtering, feature creation
+Dict Comprehensions	Feature enrichment
+OOP Fundamentals	Classes, __init__, methods
+Composition	Each processor has run()
+
+
+🔍 VERY IMPORTANT EXPLANATIONS
+🔥 1️⃣ Mutability Bug (BuggyCleaner)
+data.remove(item)
+
+
+Why this is dangerous:
+
+data is a reference
+
+Removing while iterating causes:
+
+Skipped elements
+
+Hard-to-debug bugs
+
+📌 This shows Python internals & references in action.
+
+✅ 2️⃣ Safe Cleaner (Correct Pattern)
+cleaned = [item for item in data if ...]
+
+
+Why this is correct:
+
+Creates a new list
+
+No side effects
+
+Safe for pipelines
+
+This is production-grade Python.
+
+🧠 3️⃣ Transformer & FeatureEngineer
+
+Key ideas:
+
+No mutation
+
+Each step returns new data
+
+Comprehensions for clarity & speed
+
+{
+    **item,
+    "normalized_value": ...
+}
+
+
+This:
+
+Copies dict
+
+Adds new feature
+
+Keeps original intact
+
+🧠 4️⃣ Composition-friendly design
+
+All processors:
+
+run(self, data)
+
+
+This allows:
+
+Pipeline([
+    Cleaner(),
+    Transformer(),
+    FeatureEngineer(),
+    MetricsCalculator()
+])
+
+
+No inheritance. No coupling. Clean design.
+
+🧠 Interview Insight (Say This)
+
+Each processing step is implemented as an independent class with a common interface, allowing us to compose flexible pipelines while avoiding shared mutable state.
+
+
+📁 Step 4 — pipeline.py
+🎯 Real-world purpose of this file
+
+In real systems, the pipeline:
+
+Orchestrates multiple processing steps
+
+Does NOT care what each step does
+
+Applies steps in order
+
+Can be reconfigured without code changes
+
+This is exactly how:
+
+ML pipelines
+
+ETL workflows
+
+Backend processing chains
+are designed.
+
+🧠 Concepts Used (Syllabus Mapping)
+Topic	Where used
+OOP Fundamentals	Pipeline class, __init__, state
+Composition	Steps injected into pipeline
+Decorators	Logging & timing on pipeline
+Mutability Safety	Pipeline never mutates input
+Clean Design	Single responsibility
+
+
+🔍 Why this design is IMPORTANT
+1️⃣ Pipeline knows NOTHING about steps
+step.run(current_data)
+
+
+The pipeline does NOT know:
+
+What the step does
+
+How it transforms data
+
+Whether it cleans, transforms, or calculates metrics
+
+This is loose coupling.
+
+2️⃣ Composition over inheritance (core principle)
+
+You can swap steps freely:
+
+Pipeline([
+    Cleaner(),
+    FeatureEngineer(),
+    MetricsCalculator()
+])
+
+
+No inheritance tree.
+No fragile base classes.
+
+3️⃣ Decorators on pipeline level
+@log_execution
+@timing
+def run(...)
+
+
+Why this is powerful:
+
+Measures entire pipeline time
+
+Logs pipeline execution
+
+No clutter inside pipeline logic
+
+🧠 Interview Insight (Say This)
+
+The pipeline is designed using composition, where processing steps are injected and executed sequentially, allowing easy reconfiguration and extension without modifying the pipeline itself.
+
+🧪 Mental Execution Flow
+Pipeline.run()
+  ↓
+Cleaner.run()
+  ↓
+Transformer.run()
+  ↓
+FeatureEngineer.run()
+  ↓
+MetricsCalculator.run()
+
+
+Each step:
+
+Receives output of previous step
+
+Returns new data
+
+No shared mutation
+
+
+📁 Step 5 — main.py
+🎯 Purpose of main.py
+
+This is the entry point of the application.
+
+In real systems, this is where:
+
+Async ingestion starts
+
+Pipeline is configured
+
+End-to-end execution happens
+
+Final output is produced
+
+🧠 Concepts Used (Final Mapping)
+Topic	Where used
+Async / await	Data ingestion
+Decorators	Logging + timing
+OOP	Processor & pipeline classes
+Composition	Pipeline step injection
+Comprehensions	Data processing
+Mutability	Safe data handling
+
+
+🔍 What happens when you run this (STEP-BY-STEP)
+1️⃣ Async ingestion
+raw_data = await ingest_all_sources()
+
+
+fetch_source_a and fetch_source_b run concurrently
+
+Data is flattened using a list comprehension
+
+Total time ≈ max(source delays)
+
+2️⃣ Pipeline configuration (composition)
+Pipeline([
+    Cleaner(),
+    Transformer(multiplier=2),
+    FeatureEngineer(),
+    MetricsCalculator()
+])
+
+
+No inheritance
+
+Steps are pluggable
+
+Order is configurable
+
+3️⃣ Safe data processing
+
+Each step:
+
+Receives data
+
+Returns new data
+
+No shared mutation
+
+4️⃣ Decorator effects
+
+You will see logs like:
+
+[LOG] Started: ingest_all_sources
+[TIME] ingest_all_sources: 1.50s
+[LOG] Finished: ingest_all_sources
+
+
+and similar logs for:
+
+Each processor
+
+Entire pipeline
+
+🧪 Example Final Output (Shape)
+{
+  'count': 3,
+  'min': 20,
+  'max': 60,
+  'avg': 36.6666666667
+}
+
+
+(Exact numbers depend on pipeline configuration.)
+
+🎯 Interview-Ready Project Explanation (USE THIS)
+
+I built a configurable async data ingestion and processing pipeline.
+Data is ingested concurrently using async/await, processed through a composition-based pipeline with independent processors, and instrumented using decorators for logging and timing.
+The design avoids shared mutable state, uses comprehensions for feature engineering, and allows pipeline steps to be reordered or extended without modifying the core pipeline.
+
